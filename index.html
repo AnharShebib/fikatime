@@ -1,51 +1,73 @@
 <!doctype html>
 <html lang="sv">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Fika Time ☕</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FikaTime ☕</title>
 
-  <link rel="stylesheet" href="./style.css" />
+  <!-- CSS -->
+  <link rel="stylesheet" href="./style.css">
 </head>
 
 <body>
+  <!-- Bakgrund -->
   <div class="background"></div>
 
+  <!-- Center layout -->
   <main class="layout">
     <section class="card">
+
+      <!-- Header -->
       <header class="card-header">
         <h1 class="logo">☕ FikaTime</h1>
         <p class="subtitle">Är det dags för fika?</p>
       </header>
 
+      <!-- Main content -->
       <div class="content">
         <div id="status" class="status"></div>
-        <div id="result" class="result">Laddar…</div>
+
+        <div id="result" class="result">
+          Laddar…
+        </div>
+
         <div id="countdown" class="countdown"></div>
 
+        <!-- Check-in button -->
         <button id="checkInBtn" class="btn" style="display:none;">
           Checka in ☕
         </button>
 
-        <div id="steam" class="steam" style="display:none;">☁️ ☁️ ☁️</div>
+        <!-- Steam effect -->
+        <div id="steam" class="steam" style="display:none;">
+          ☁️ ☁️ ☁️
+        </div>
       </div>
 
+      <!-- Race animation -->
       <div id="raceContainer" class="race" style="display:none;">
         <div class="track">
           <span class="finish">🏁</span>
+
           <div id="cupWrap" class="cupWrap">
             <div class="cup">☕</div>
           </div>
         </div>
-        <div class="race-text">Race starts 14:45</div>
+
+        <div class="race-text">
+          Fika-race startar 14:45
+        </div>
       </div>
 
+      <!-- Footer -->
       <footer class="footer">
         Automatic fika detection · Local time
       </footer>
+
     </section>
   </main>
 
+  <!-- JS -->
   <script src="./script.js"></script>
 </body>
 </html>
