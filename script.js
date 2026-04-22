@@ -1,195 +1,237 @@
-const status = document.getElementById("status");
-const result = document.getElementById("result");
-const countdown = document.getElementById("countdown");
+/* =========================
+   Design tokens
+========================= */
+:root {
+  --bg: #0b0f1a;
+  --bg-accent: #11182a;
+  --card-bg: rgba(20, 28, 50, 0.75);
+  --border: rgba(255, 255, 255, 0.12);
 
-const race = document.getElementById("raceContainer");
-const cupWrap = document.getElementById("cupWrap");
-const steam = document.getElementById("steam");
+  --text-main: #f1f4ff;
+  --text-muted: #9aa4c7;
+  --accent: #7dd3fc;
+  --accent-strong: #38bdf8;
+  --success: #86efac;
+  --danger: #fb7185;
 
-// knapp
-const checkInBtn = document.getElementById("checkInBtn");
-
-// localStorage-nyckel
-const CHECKIN_KEY = "fikaCheckin";
-
-// hjälpfunktion för datumnyckel (så check-in bara gäller samma dag)
-function todayKey(d) {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
+  --radius-lg: 22px;
+  --radius-md: 14px;
 }
 
-// spara check-in (endast om inom fönster)
-function handleCheckIn() {
-  const now = new Date();
-  const hour = now.getHours();
-  const minutes = now.getMinutes();
-  const seconds = now.getSeconds();
-  const currentTotal = hour * 60 + minutes + seconds / 60;
-
-  const fikaStart = 15 * 60;       // 15:00
-  const fikaEnd = fikaStart + 15;  // 15:15
-
-  if (currentTotal >= fikaStart && currentTotal <= fikaEnd) {
-    localStorage.setItem(
-      CHECKIN_KEY,
-      JSON.stringify({
-        day: todayKey(now),
-        checkedAtMinutes: currentTotal,
-      })
-    );
-  }
+/* =========================
+   Reset
+========================= */
+* {
+  box-sizing: border-box;
 }
 
-checkInBtn?.addEventListener("click", handleCheckIn);
-
-function checkFika() {
-  const now = new Date();
-
-  const day = now.getDay(); // 0 = söndag, 6 = lördag
-  const hour = now.getHours();
-  const minutes = now.getMinutes();
-  const seconds = now.getSeconds();
-
-  const currentTotal = hour * 60 + minutes + seconds / 60;
-
-  const fikaStart = 15 * 60;        // 15:00
-  const fikaEnd = fikaStart + 15;   // 15:15
-
-  // tider för check-in-resultat och missat
-  const fikaYesUntil = 16 * 60;     // 16:00
-  const fikaMissAt = 16 * 60 + 15;  // 16:15
-
-  const isWeekend = (day === 0 || day === 6);
-  const isFridayAfterFika = (day === 5 && currentTotal > fikaEnd);
-
-  result.classList.remove("pulse");
-  if (steam) steam.style.display = "none";
-
-  // visa/dölj check-in-knappen
-  const showCheckInButton = (!isWeekend && !isFridayAfterFika &&
-    currentTotal >= fikaStart && currentTotal <= fikaEnd);
-
-  if (checkInBtn) checkInBtn.style.display = showCheckInButton ? "inline-block" : "none";
-
-  // läs check-in status
-  let checkedInToday = false;
-  try {
-    const raw = localStorage.getItem(CHECKIN_KEY);
-    if (raw) {
-      const data = JSON.parse(raw);
-      if (data?.day === todayKey(now) && typeof data.checkedAtMinutes === "number") {
-        // gäller om check-in gjordes inom 15:00–15:15 och innan 16:00
-        if (
-          data.checkedAtMinutes >= fikaStart &&
-          data.checkedAtMinutes <= fikaEnd &&
-          currentTotal < fikaYesUntil
-        ) {
-          checkedInToday = true;
-        }
-      }
-    }
-  } catch (e) {
-    // om localStorage-data är trasig, ignorera
-  }
-
-  /* ===== HELG ===== */
-  if (isWeekend || isFridayAfterFika) {
-    status.textContent = "";
-    result.textContent = "NU ÄR DET HELG 🎉";
-
-    if (race) race.style.display = "none";
-    if (checkInBtn) checkInBtn.style.display = "none";
-
-    // nästa måndag 15:00
-    let daysUntilMonday = (8 - day) % 7;
-    if (daysUntilMonday === 0) daysUntilMonday = 7;
-
-    const totalMinutes =
-      daysUntilMonday * 24 * 60 +
-      (fikaStart - currentTotal);
-
-    const h = Math.floor(totalMinutes / 60);
-    const m = Math.floor(totalMinutes % 60);
-
-    countdown.textContent = `Nästa fika om ${h}h ${m}m (måndag 15:00)`;
-    return;
-  }
-
-  /* ===== RACE ===== */
-  if (currentTotal >= 14 * 60 + 45) {
-    if (race) race.style.display = "block";
-
-    const raceStart = 14 * 60 + 45;
-    const duration = 15 * 60; // sekunder
-    const elapsed = (currentTotal - raceStart) * 60;
-
-    let progress = elapsed / duration;
-    if (progress > 1) progress = 1;
-
-    if (race && cupWrap) {
-      const trackWidth = race.offsetWidth - 60; // lite marginal
-      cupWrap.style.left = (progress * trackWidth) + "px";
-    }
-  } else {
-    if (race) race.style.display = "none";
-  }
-
-  /* ===== CHECK-IN ÖVERSTYR (FIKA JA TILL 16:00) ===== */
-  if (checkedInToday) {
-    status.textContent = "";
-    result.textContent = "FIKA JA ☕";
-    countdown.textContent = "Du är incheckad till 16:00 ✅";
-    return;
-  }
-
-  /* ===== SNART ===== */
-  if (currentTotal >= fikaStart - 5 && currentTotal < fikaStart) {
-    status.textContent = "";
-    result.textContent = "SNART ☕";
-    result.classList.add("pulse");
-    if (steam) steam.style.display = "block";
-    countdown.textContent = "";
-  }
-
-  /* ===== FIKA-FÖNSTER (KNAPPEN SYNS HÄR) ===== */
-  else if (currentTotal >= fikaStart && currentTotal <= fikaEnd) {
-    status.textContent = "";
-    result.textContent = "CHECKA IN ☕";
-    countdown.textContent = "Klicka på knappen för att få FIKA JA till 16:00";
-  }
-
-  /* ===== EFTER FIKA: MISSAT VID 16:15 (OM EJ INCHECKAD) ===== */
-  else if (currentTotal >= fikaMissAt) {
-    status.textContent = "";
-    result.textContent = "FIKA MISSAT ❌";
-    countdown.textContent = "";
-  }
-
-  /* ===== NEJ (SOM VANLIGT) ===== */
-  else {
-    status.textContent = "";
-    result.textContent = "NEJ";
-
-    let nextFika = fikaStart;
-    if (currentTotal > fikaEnd) {
-      nextFika = fikaStart + 24 * 60;
-    }
-
-    const diff = Math.max(0, nextFika - currentTotal);
-
-    const h = Math.floor(diff / 60);
-    const m = Math.floor(diff % 60);
-    const s = Math.floor((diff * 60) % 60);
-
-    countdown.textContent = `Nästa fika om ${h > 0 ? h + "h " : ""}${m}m ${s}s`;
-  }
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text-main);
 }
 
-// säker start när DOM är laddad
-document.addEventListener("DOMContentLoaded", () => {
-  checkFika();
-  setInterval(checkFika, 1000);
-});
+/* =========================
+   Background
+========================= */
+.background {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(800px 400px at 20% -10%, #1e2a52, transparent 60%),
+    radial-gradient(900px 500px at 80% 0%, #0e7490, transparent 55%),
+    linear-gradient(180deg, var(--bg), #050812);
+  z-index: -1;
+}
+
+/* =========================
+   Layout
+========================= */
+.layout {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+/* =========================
+   Card
+========================= */
+.card {
+  width: min(720px, 100%);
+  background: var(--card-bg);
+  backdrop-filter: blur(18px);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+  padding: 28px;
+  animation: fadeIn 0.8s ease;
+}
+
+/* =========================
+   Header
+========================= */
+.card-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.logo {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: 0.4px;
+}
+
+.subtitle {
+  margin-top: 6px;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+/* =========================
+   Content
+========================= */
+.content {
+  text-align: center;
+  padding: 16px 0 24px;
+}
+
+.status {
+  min-height: 18px;
+  color: var(--text-muted);
+}
+
+.result {
+  font-size: 46px;
+  font-weight: 900;
+  margin: 10px 0;
+  letter-spacing: 0.5px;
+}
+
+.countdown {
+  color: var(--text-muted);
+  font-size: 16px;
+}
+
+/* =========================
+   Button
+========================= */
+.btn {
+  margin-top: 18px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 14px 20px;
+  font-weight: 800;
+  font-size: 15px;
+  color: #04131f;
+  cursor: pointer;
+  box-shadow:
+    0 10px 30px rgba(56, 189, 248, 0.35);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 38px rgba(56, 189, 248, 0.45);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+/* =========================
+   Steam / pulse
+========================= */
+.steam {
+  margin-top: 10px;
+  opacity: 0.75;
+  animation: steam 1.2s infinite ease-in-out;
+}
+
+.pulse {
+  animation: pulse 1.2s infinite ease-in-out;
+}
+
+/* =========================
+   Race
+========================= */
+.race {
+  margin-top: 22px;
+}
+
+.track {
+  position: relative;
+  height: 42px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.06),
+    rgba(255, 255, 255, 0.1)
+  );
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.finish {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.9;
+}
+
+.cupWrap {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  transition: left 0.15s linear;
+  padding-left: 12px;
+}
+
+.cup {
+  font-size: 22px;
+}
+
+.race-text {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* =========================
+   Footer
+========================= */
+.footer {
+  margin-top: 26px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  opacity: 0.8;
+}
+
+/* =========================
+   Animations
+========================= */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+@keyframes steam {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.9; }
+}
 ``
