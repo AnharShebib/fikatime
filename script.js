@@ -1,5 +1,5 @@
-const result = document.getElementById("result");
-
+result.textContent = "NEJ ❌ (" + h + ":" + String(m).padStart(2,"0") + ")";
+``
 function update() {
   const now = new Date();
   const h = now.getHours();
