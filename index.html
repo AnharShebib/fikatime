@@ -4,33 +4,36 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Fika?</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="./style.css" />
 </head>
+
 <body>
   <main class="card">
     <div id="status" class="status"></div>
     <div id="result" class="result">Laddar…</div>
     <div id="countdown" class="countdown"></div>
 
-    <!-- Check-in knapp (din kod visar/döljer den automatiskt) -->
+    <!-- Check-in knapp (syns bara 15:00–15:15 på vardagar) -->
     <button id="checkInBtn" class="btn" style="display:none;">
       Checka in ☕
     </button>
 
-    <!-- Race / animation container som din kod använder -->
+    <!-- Steam/”snart”-indikator -->
+    <div id="steam" class="steam" style="display:none;">☁️</div>
+
+    <!-- Race/animation -->
     <div id="raceContainer" class="race" style="display:none;">
       <div class="track">
+        <div class="finish">🏁</div>
         <div id="cupWrap" class="cupWrap">
           <div class="cup">☕</div>
         </div>
       </div>
+      <div class="raceHint">Cup-race startar 14:45 → 15:00</div>
     </div>
-
-    <!-- Steam-element som din kod visar/döljer -->
-    <div id="steam" class="steam" style="display:none;">☁️</div>
   </main>
 
-  <script src="script.js"></script>
+  <script src="./script.js"></script>
 </body>
 </html>
 ``
